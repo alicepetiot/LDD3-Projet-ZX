@@ -6,4 +6,4 @@ tests:
 git:
 	git add .
 	git commit -m "$m"
-	git push https://$(username):"$p"@github.com/$(username)/LDD3-Projet-ZX origin main
+	git push https://$(username):"$p"@github.com/$(username)/LDD3-Projet-ZX
