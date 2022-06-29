@@ -1,3 +1,4 @@
+from re import A
 import numpy as np 
 import itertools
 from itertools import product
@@ -152,3 +153,14 @@ def generate_matrix(r,n):
         Q = Q3(r)
     return Q,A,B
 
+def generate_all_matrix(max):
+    Q = []
+    A = []
+    B = []
+    for n in range(max):
+        for r in range(n):
+            res = generate_matrix(r,n)
+            Q.append(res[0])
+            A.append(res[1])
+            B.append(res[2])
+    
