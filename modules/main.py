@@ -1,13 +1,31 @@
-from re import A
 import numpy as np 
+from hashlib import sha1
 import itertools
-from itertools import product
+import math
 
+#fonction pour afficher une simple matrice numpy
+def print_simp_arr(arr):
+    print("\n----------\n[", end="")
+    for i in range(len(arr)):
+        print(arr[i], end="") if i == len(arr) - 1 else print(arr[i], end=" ")
+    print("]\n----------")
+
+#fonction pour afficher une double matrice numpy 
+def print_arr(arr):
+    print("\n----------\n[", end="")
+    for i in range(len(arr)):
+        print("[", end="")
+        for j in range(len(arr[0])):
+            print(arr[i][j], end="") if j == len(arr[0]) - 1 else print(arr[i][j], end=" ")
+        print("]",end="") if i == len(arr) - 1 else print("]")
+    print("]\n----------")
+
+#fonction pour afficher une liste de matrice numpy 
 def print_list(list):
-    print("[")
-    for arr in list: print(arr)
-    print("]")
-
+    print("\n[", end="")
+    for arr in list: 
+        print_arr(arr)
+    print("]\n") 
 
 def Q1(r):
     # on stocke dans "res" toutes les matrices qu'on va générer 
@@ -125,42 +143,180 @@ def Q3(r):
         print("Error => r :",r,"doit etre superieur a 0")
     return res
 
-
-""" 
-    @ name : 
-        - generate_matrix
-    @ parameters : 
-        - r [int+] : nombre de variables
-        - n [int+] : nombre de qubits 
-    @ returns : 
-        - Q [list] : liste de matrices dont la forme dépend des valeurs r et n 
-        - A [list] : liste de matrices dont la forme dépend des valeurs r et n 
-        - B [list] : liste de matrices dont la forme dépend des valeurs r et n 
-    @ goal : 
-        - generer 3 listes Q, A et b qui contiennent toutes les matrices possibles 
-        qui leur correspond en fonction des valeurs de r et n 
-"""
+# permet de generer toutes les matrices Q, A et B en fonction des valeurs de r et n 
 def generate_matrix(r,n):
+    # peut importe les valeurs de r et n les matrices B sont toujours les mêmes 
+    # B est une liste qui contient deux matrices avec 1 colonne et n lignes
+    # la premiere est une colonne avec des zeros et la deuxieme avec des uns
     B = [np.zeros([n,1], dtype=int),np.ones([n,1], dtype=int)]
+    # on differencie 3 cas : 
+    # 1) r est egal a n 
+    # 2) r est egal a n+1 
+    # 3) r est plus petit que n 
     if r == n:
+        # A est la matrice identite (r colonnes, n lignes)
         A = [np.eye(r, dtype=int)]
+        # Q est une matrice symetrique (r colonnes, r lignes)
+        # sa diagonale comporte que des 0 (ou que des 1,2 ou 3)
+        # toutes ses autres valeurs sont soient egal a 0 ou alors a 1
         Q = Q1(r)
     elif r == n+1: 
+        # A est une matrice identite de taille (r-1 colonnes, n-1 lignes)
+        # avec une colonne qui contient que des zeros tout a gauche
         A = [np.c_[np.zeros((n,), dtype=int),np.eye(n, dtype=int)]]
+        # Q est toujours une matrice symetrique 
+        # on retrouve la meme forme que Q1 de taille (r-1 colonnes, r-1 lignes)
+        # et en plus on a une colonne a droite avec que des 1 
+        # une lignes en haut qu'avec des 1 
+        # et enfin la case (0,0) peut prendre un 0 ou un 1 
         Q = Q2(r)
     else: 
-        A = [np.ones((n,r), dtype=int)] #n lignes, r colonnes 
+        # A est une matrice complète avec (r colonnes, n lignes) 
+        A = [np.ones((n,r), dtype=int)] 
+        # Q est toujours symétrique mais quelconque cette fois-ci 
         Q = Q3(r)
     return Q,A,B
 
-def generate_all_matrix(max):
-    Q = []
-    A = []
-    B = []
-    for n in range(max):
-        for r in range(n):
-            res = generate_matrix(r,n)
-            Q.append(res[0])
-            A.append(res[1])
-            B.append(res[2])
-    
+# permet de transposer une matrice double ou simple 
+def transpose(m):
+    s = np.shape(m) # shape = (x,y) avec x les lignes et y les colonnes
+    l = len(m) # nb lignes
+    c = len(m[0]) # nb colonnes 
+    if len(s) == 1: # si la shape est de la forme (x,_) alors len(s) = 1 et on a une matrice simple
+        res = np.zeros((s[0],1)) # on prepare notre matrice pour etre sous la forme d une colonne 
+        for i in range(l):
+            res[l-i-1] = m[i] # on la remplit 
+    # sinon c est qu on a des matrices doubles 
+    else: 
+        res = [] 
+        for j in range(c): # on parcours une colonne 
+            temp = []
+            for i in range(l): # on recupere ses valeurs pour chaque lignes 
+                temp.append(m[i][j])
+            res.append(temp) # on ajoute ses valeurs a notre nouvelle matrice mais en tant que ligne 
+        # on retransforme notre res en numpy array
+        return np.array(res)
+
+# retourne le produit tensoriel entre deux matrices  
+def tensor_product(m1,m2):
+    res = []
+    # on regarde une lignes dans m1 
+    # on regarde le premier membre de la ligne i et on le multiplie par la premiere ligne dans m2 (on obtient une liste)
+    # puis on regarde le deuxieme membre de la ligne i et on le multiplie par la premiere ligne dans m2 (on obtient une liste)
+    # on fait ca pour chaque membre de la ligne et on concatene tous les resultats dans line 
+    # ca nous donne la premiere ligne de notre matrice 
+    # puis on recommence pour la meme ligne i mais avec les lignes suivantes k dans m2 
+    # lorsqu on a fini de multiplier i avec toutes les lignes k dans m2, on change de lignes i 
+    # i represente les lignes de m1
+    for i in range(len(m1)):
+        # k represente les lignes de m2
+        for k in range(len(m2)):
+            line = [] 
+            # j represente les colonnes de m1
+            for j in range(len(m1[0])):
+                line = line + list(m1[i][j] * m2[k])
+            res.append(line)
+    # m1 =  0 0        m2 = 1 1         res =   0 0 0 0     =   [0 0] + [0 0]   (i = 0, k = 0, j = 0,1)
+    #       0 2             1 1                 0 0 0 0         [0 0] + [0 0]   (i = 0, k = 1, j = 0,1)
+    #       0 0                                 0 0 2 2         0 0 2 2         (i = 1, k = 0, j = 0,1)
+    #                                           0 0 2 2         0 0 2 2         (i = 1, k = 1, j = 0,1)
+    #                                           0 0 0 0         0 0 0 0         (i = 2, k = 0, j = 0,1)
+    #                                           0 0 0 0         0 0 0 0         (i = 2, k = 1, j = 0,1)
+    return np.array(res)
+
+# permet de faire le produit tensoriel entre plusieurs matrices 
+# prend une liste de matrice en parametres 
+def tensor_products(list):
+    res = []
+    if len(list) >= 2:
+        res = tensor_product(list[0],list[1])
+        temp = list.copy()
+        temp.pop(0)
+        temp.pop(1)
+        while len(temp) != 0:
+            res = tensor_product(res,temp[0])
+            temp.pop(0)
+    else:
+        print("Error, the list must contains at least 2 elements")
+    return res
+
+# produit tensoriel d une matrice avec elle meme nb fois 
+def tensor_product_pow(m,nb):
+    res = m
+    if nb == 0:
+        res = []
+    else:
+        for i in range(nb-1):
+            res = tensor_product(res,m)
+    return res
+
+# variables 
+ket0 = np.array([[1],[0]])
+ket1 = np.array([[0],[1]])
+bra0 = np.array([1,0])
+bra1 = np.array([0,1])
+H = 1/math.sqrt(2) * np.array([[1,1],[1,-1]])
+ketp = H.dot(ket0)
+ketm = H.dot(ket1)
+brap = transpose(ketp)
+bram = transpose(ketm)
+
+# genere un noeud vert avec n entrees, m sorties et avec un angle a 
+def green_node(n,m,a):
+    mat = np.zeros([2**m,2**n],dtype=complex) # matrice de type complexe 
+    if n == 0 and m == 0 : 
+        mat[0,0] = 1+math.cos(a) + 1j*math.sin(a)
+    else:
+        mat[0,0] = 1
+        mat[len(mat)-1,len(mat[0])-1] = math.cos(a) + 1j*math.sin(a)
+    return mat 
+
+def gn(n,m,a):
+    x1 = tensor_product_pow([ket0],m)
+    x2 = tensor_product_pow([ket1],m)
+    x3 = tensor_product_pow([bra0],n)
+    x4 = tensor_product_pow([bra1],n)
+    m1 = x1.dot(x3)
+    m2 = (math.cos(a) + 1j*math.sin(a)) * x2.dot(x4)
+    return np.add(m1,m2)
+
+# genere un noeud rouge avec n entrees, m sorties et avec un angle a 
+def rn(n,m,a):
+    x1 = tensor_product_pow([ketp],m)
+    x2 = tensor_product_pow([ketm],m)
+    x3 = tensor_product_pow([brap],n)
+    x4 = tensor_product_pow([bram],n)
+    m1 = x1.dot(x3)
+    m2 = (math.cos(a) + 1j*math.sin(a)) * x2.dot(x4)
+    return np.add(m1,m2)
+
+# permet de generer le hash d une matrice pour la reconnaitre 
+def hash_mat(arr):
+    return sha1(arr).hexdigest()
+        
+def sum_matrix(r,n):
+    i = 1j 
+    all_x = np.array(list(itertools.product([0,1],repeat=r)))
+    x = all_x[0]
+    #print(np.shape(x))
+    transpose(x)
+    #xt = transpose(x)
+    res = generate_matrix(r,n)
+    Q = res[0][1]
+    A = res[1][0]
+    B = res[2][0]
+    #print("x:",np.shape(x))
+    #print(np.shape(xt))
+    #print_arr(xt)
+    #print("Q:",Q)
+    #print("A:",A)
+    #print_arr(B)
+    #print("1:",i**(xt.dot(Q)).dot(x))
+    #print("2:",A.dot(x).T)
+    #print("3:",np.bitwise_xor(A.dot(x),B))
+    return []
+
+#sum_matrix(2,3)
+
+ 
+ 
