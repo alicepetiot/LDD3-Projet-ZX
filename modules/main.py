@@ -271,6 +271,7 @@ def green_node(n,m,a):
         mat[len(mat)-1,len(mat[0])-1] = math.cos(a) + 1j*math.sin(a)
     return mat 
 
+# genere un noeud vert avec n entrees, m sorties et avec un angle a 
 def gn(n,m,a):
     x1 = tensor_product_pow([ket0],m)
     x2 = tensor_product_pow([ket1],m)
@@ -293,6 +294,9 @@ def rn(n,m,a):
 # permet de generer le hash d une matrice pour la reconnaitre 
 def hash_mat(arr):
     return sha1(arr).hexdigest()
+
+
+print_arr(gn(1,2,0))
         
 def sum_matrix(r,n):
     i = 1j 
