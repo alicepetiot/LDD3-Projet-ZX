@@ -204,6 +204,8 @@ def transpose(m):
     """
 def tensor_product(m1,m2):
     res = []
+    s = np.shape(m1) 
+    s2 = np.shape(m2)
     # on regarde une lignes dans m1 
     # on regarde le premier membre de la ligne i et on le multiplie par la premiere ligne dans m2 (on obtient une liste)
     # puis on regarde le deuxieme membre de la ligne i et on le multiplie par la premiere ligne dans m2 (on obtient une liste)
@@ -212,21 +214,44 @@ def tensor_product(m1,m2):
     # puis on recommence pour la meme ligne i mais avec les lignes suivantes k dans m2 
     # lorsqu on a fini de multiplier i avec toutes les lignes k dans m2, on change de lignes i 
     # i represente les lignes de m1
-    for i in range(len(m1)):
-        # k represente les lignes de m2
+    if len(s) == 1:
         for k in range(len(m2)):
-            line = [] 
-            # j represente les colonnes de m1
-            for j in range(len(m1[0])):
-                line = line + list(m1[i][j] * m2[k])
+            line = []
+            for i in range(len(m1)):
+                line = line + list(m1[i]*m2[k])
             res.append(line)
-    # m1 =  0 0        m2 = 1 1         res =   0 0 0 0     =   [0 0] + [0 0]   (i = 0, k = 0, j = 0,1)
-    #       0 2             1 1                 0 0 0 0         [0 0] + [0 0]   (i = 0, k = 1, j = 0,1)
-    #       0 0                                 0 0 2 2         0 0 2 2         (i = 1, k = 0, j = 0,1)
-    #                                           0 0 2 2         0 0 2 2         (i = 1, k = 1, j = 0,1)
-    #                                           0 0 0 0         0 0 0 0         (i = 2, k = 0, j = 0,1)
-    #                                           0 0 0 0         0 0 0 0         (i = 2, k = 1, j = 0,1)
+    elif len(s2) == 1:
+        for i in range(len(m1)):
+            line = []
+            for j in range(len(m1[0])):
+                line = line + list(m1[i][j] * m2)
+            res.append(line)
+    else:         
+        for i in range(len(m1)):
+            # k represente les lignes de m2
+            for k in range(len(m2)):
+                line = [] 
+                # j represente les colonnes de m1
+                for j in range(len(m1[0])):
+                    line = line + list(m1[i][j] * m2[k])
+                res.append(line)
+        # m1 =  0 0        m2 = 1 1         res =   0 0 0 0     =   [0 0] + [0 0]   (i = 0, k = 0, j = 0,1)
+        #       0 2             1 1                 0 0 0 0         [0 0] + [0 0]   (i = 0, k = 1, j = 0,1)
+        #       0 0                                 0 0 2 2         0 0 2 2         (i = 1, k = 0, j = 0,1)
+        #                                           0 0 2 2         0 0 2 2         (i = 1, k = 1, j = 0,1)
+        #                                           0 0 0 0         0 0 0 0         (i = 2, k = 0, j = 0,1)
+        #                                           0 0 0 0         0 0 0 0         (i = 2, k = 1, j = 0,1)
     return np.array(res)
+
+#m1 = np.array([1,0])
+#m2 = np.ones([2,2])
+#m1 = np.ones([2,2])
+#m2 = np.array([1,0])
+#m1 = []
+#m2 = np.array([1,0])
+#m1 = np.ones([3,2])
+#m2 = np.ones([2,2])
+#print(tensor_product(m1,m2))
 
 # permet de faire le produit tensoriel entre plusieurs matrices 
 # prend une liste de matrice en parametres 
