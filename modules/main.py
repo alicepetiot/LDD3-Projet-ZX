@@ -391,12 +391,12 @@ def search_matrix(l,h):
             break 
     return boolean
 
-l = [green_node(1,2,0)]*10
-m = green_node(1,2,0)
-m1 = np.array([0,4])
-l1 = l + [m1]
-h = hash_mat(m1)
-print(search_matrix(l1,h))
+#l = [green_node(1,2,0)]*10
+#m = green_node(1,2,0)
+#m1 = np.array([0,4])
+#l1 = l + [m1]
+#h = hash_mat(m1)
+#print(search_matrix(l1,h))
     
 def sum_matrix(r,n):
     i = 1j 
