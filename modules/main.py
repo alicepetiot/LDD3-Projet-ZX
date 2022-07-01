@@ -378,6 +378,9 @@ def search_matrix_from_hash(path,hash):
                 pass 
     return boolean
                 
+mat = green_node(1,2,0)
+h = hash_mat(mat)
+search_matrix_from_hash(h)
 
 def sum_matrix(r,n):
     i = 1j 
