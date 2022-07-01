@@ -198,6 +198,10 @@ def transpose(m):
         return np.array(res)
 
 # retourne le produit tensoriel entre deux matrices  
+    """
+        GERER LE CAS D1 
+        CAR m1[0] EXISTE PAS SI M1 PAS DE D2 => ERROR
+    """
 def tensor_product(m1,m2):
     res = []
     # on regarde une lignes dans m1 
@@ -272,6 +276,9 @@ def green_node(n,m,a):
     return mat 
 
 # genere un noeud vert avec n entrees, m sorties et avec un angle a 
+    """
+        SUPPRIMER LES CROCHETS EN TROP...
+    """
 def gn(n,m,a):
     x1 = tensor_product_pow([ket0],m)
     x2 = tensor_product_pow([ket1],m)
@@ -282,6 +289,9 @@ def gn(n,m,a):
     return np.add(m1,m2)
 
 # genere un noeud rouge avec n entrees, m sorties et avec un angle a 
+    """
+        SUPPRIMER LES CROCHETS EN TROP...
+    """
 def rn(n,m,a):
     x1 = tensor_product_pow([ketp],m)
     x2 = tensor_product_pow([ketm],m)
@@ -295,6 +305,11 @@ def rn(n,m,a):
 def hash_mat(arr):
     return sha1(arr).hexdigest()
 
+
+    """
+        RAJOUTER UNE FONCTIONNALITE POUR PAS ECRIRE UNE MATRICE QUI EXISTE DEJA
+        (avec le hash)
+    """
 # permet d ecrire des matrices complexes dans un fichier txt (1D ou 2D)
 def save_matrix(liste,path):
     with open(path,'w') as f:
@@ -347,9 +362,21 @@ def read_matrix(path):
                 #print("mat:",mat)
     return res
 
+#res = read_matrix("matrix/test.txt")
+#print_list(res)
 
-res = read_matrix("matrix/test.txt")
-print_list(res)
+def search_matrix_from_hash(path,hash):
+    boolean = True
+    with open(path,'r') as f:
+        for line in f:  
+            if not line.startswith("(") and not line.startswith("END") and not line.startswith("\n"):
+                if line == hash: 
+                    boolean = boolean or True
+                else: 
+                    boolean = boolean or False  
+            else:
+                pass 
+    return boolean
                 
 
 def sum_matrix(r,n):
