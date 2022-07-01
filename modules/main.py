@@ -365,12 +365,12 @@ def read_matrix(path):
 #res = read_matrix("matrix/test.txt")
 #print_list(res)
 
-def search_matrix_from_hash(path,hash):
-    boolean = True
+def search_matrix_from_hash(path,h):
     with open(path,'r') as f:
+        boolean = False
         for line in f:  
             if not line.startswith("(") and not line.startswith("END") and not line.startswith("\n"):
-                if line == hash: 
+                if line.split()[0] == h: 
                     boolean = boolean or True
                 else: 
                     boolean = boolean or False  
@@ -378,10 +378,26 @@ def search_matrix_from_hash(path,hash):
                 pass 
     return boolean
                 
-mat = green_node(1,2,0)
-h = hash_mat(mat)
-search_matrix_from_hash(h)
+#mat = np.array([0,2])
+#mat2 = green_node(1,2,0)
+#h = hash_mat(mat)
+#print(search_matrix_from_hash("matrix/test.txt",h))
 
+def search_matrix(l,h):
+    boolean = False
+    for m in l:
+        if hash_mat(m) == h:
+            boolean = True 
+            break 
+    return boolean
+
+l = [green_node(1,2,0)]*10
+m = green_node(1,2,0)
+m1 = np.array([0,4])
+l1 = l + [m1]
+h = hash_mat(m1)
+print(search_matrix(l1,h))
+    
 def sum_matrix(r,n):
     i = 1j 
     all_x = np.array(list(itertools.product([0,1],repeat=r)))
