@@ -2,6 +2,7 @@ import numpy as np
 from hashlib import sha1
 import itertools
 import math
+import re 
 
 #fonction pour afficher une simple matrice numpy
 def print_simp_arr(arr):
@@ -180,8 +181,7 @@ def generate_matrix(r,n):
 # permet de transposer une matrice double ou simple 
 def transpose(m):
     s = np.shape(m) # shape = (x,y) avec x les lignes et y les colonnes
-    l = len(m) # nb lignes
-    c = len(m[0]) # nb colonnes 
+    l = len(m) # nb lignes 
     if len(s) == 1: # si la shape est de la forme (x,_) alors len(s) = 1 et on a une matrice simple
         res = np.zeros((s[0],1)) # on prepare notre matrice pour etre sous la forme d une colonne 
         for i in range(l):
@@ -189,7 +189,7 @@ def transpose(m):
     # sinon c est qu on a des matrices doubles 
     else: 
         res = [] 
-        for j in range(c): # on parcours une colonne 
+        for j in range(len(m[0]) ): # on parcours une colonne 
             temp = []
             for i in range(l): # on recupere ses valeurs pour chaque lignes 
                 temp.append(m[i][j])
@@ -295,9 +295,63 @@ def rn(n,m,a):
 def hash_mat(arr):
     return sha1(arr).hexdigest()
 
+# permet d ecrire des matrices complexes dans un fichier txt (1D ou 2D)
+def save_matrix(liste,path):
+    with open(path,'w') as f:
+        for mat in liste:
+            s = np.shape(mat) # shape = (x,y) avec x les lignes et y les colonnes
+            l = len(mat)
+            f.write(hash_mat(mat)+"\n")
+            if len(s) == 1: # si la shape est de la forme (x,_) alors len(s) = 1 et on a une matrice simple
+                for i in range(l):
+                    c = mat[i] # le complexe courrant
+                    real = c.real # sa partie reelle
+                    imag = c.imag # sa partie imaginaire 
+                    f.write('('+str(real)+','+str(imag)+')'+' ')
+                f.write("\n")
+            else:
+                for i in range(l): #lignes
+                    for j in range(len(mat[0])): #colonnes
+                        c = mat[i,j]
+                        real = c.real
+                        imag = c.imag 
+                        f.write('('+str(real)+','+str(imag)+')'+' ')
+                    f.write("\n")
+                f.write("\n")
+        f.write("END")
 
-print_arr(gn(1,2,0))
-        
+
+#liste = [green_node(1,2,0)]*10+[np.array([0,2])]
+#save_matrix(liste,"matrix/test.txt")
+    
+def read_matrix(path):
+    res = []
+    mat = []
+    with open(path,'r') as f:
+        for line in f:    
+            if line.startswith("\n") or line.startswith("END"):
+                res.append(mat)
+                mat = []      
+            elif not line.startswith("(") :
+                pass
+            else:
+                #print("cc")
+                split = line.split(" ")
+                l = []
+                for i in range(len(split)-1):
+                    real = re.findall('[0-9][.]*[0-9]*',split[i])[0]
+                    imag = re.findall('[0-9][.]*[0-9]*',split[i][1+len(real)+1:])[0]
+                    l.append(float(real)+float(imag)*1j)
+                #print("l:", l)
+                mat.append(l)
+                #print("mat:",mat)
+    return res
+
+
+res = read_matrix("matrix/test.txt")
+print_list(res)
+                
+
 def sum_matrix(r,n):
     i = 1j 
     all_x = np.array(list(itertools.product([0,1],repeat=r)))

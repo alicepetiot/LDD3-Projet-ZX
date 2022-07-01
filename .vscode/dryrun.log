@@ -1,5 +1,0 @@
-make --dry-run --always-make --keep-going --print-directory
-make: Entering directory '/home/alice/LDD3-Projet-ZX'
-python3 -m unittest discover tests/ "*_test.py"
-make: Leaving directory '/home/alice/LDD3-Projet-ZX'
- 
