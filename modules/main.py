@@ -198,10 +198,6 @@ def transpose(m):
         return np.array(res)
 
 # retourne le produit tensoriel entre deux matrices  
-    """
-        GERER LE CAS D1 
-        CAR m1[0] EXISTE PAS SI M1 PAS DE D2 => ERROR
-    """
 def tensor_product(m1,m2):
     res = []
     s = np.shape(m1) 
@@ -214,18 +210,23 @@ def tensor_product(m1,m2):
     # puis on recommence pour la meme ligne i mais avec les lignes suivantes k dans m2 
     # lorsqu on a fini de multiplier i avec toutes les lignes k dans m2, on change de lignes i 
     # i represente les lignes de m1
-    if len(s) == 1:
+    if len(s) == 1 and len(s2) != 1:
         for k in range(len(m2)):
             line = []
             for i in range(len(m1)):
                 line = line + list(m1[i]*m2[k])
             res.append(line)
-    elif len(s2) == 1:
+    elif len(s2) == 1 and len(s) != 1:
         for i in range(len(m1)):
             line = []
             for j in range(len(m1[0])):
                 line = line + list(m1[i][j] * m2)
             res.append(line)
+    elif len(s) == 1 and len(s2) == 1:
+        line = []
+        for i in range(len(m1)):
+            line = line + list(m1[i]*m2)
+        res.append(line)
     else:         
         for i in range(len(m1)):
             # k represente les lignes de m2
@@ -282,8 +283,8 @@ def tensor_product_pow(m,nb):
 # variables 
 ket0 = np.array([[1],[0]])
 ket1 = np.array([[0],[1]])
-bra0 = np.array([1,0])
-bra1 = np.array([0,1])
+bra0 = [np.array([1,0])]
+bra1 = [np.array([0,1])]
 H = 1/math.sqrt(2) * np.array([[1,1],[1,-1]])
 ketp = H.dot(ket0)
 ketm = H.dot(ket1)
@@ -301,40 +302,38 @@ def green_node(n,m,a):
     return mat 
 
 # genere un noeud vert avec n entrees, m sorties et avec un angle a 
-    """
-        SUPPRIMER LES CROCHETS EN TROP...
-    """
 def gn(n,m,a):
-    x1 = tensor_product_pow([ket0],m)
-    x2 = tensor_product_pow([ket1],m)
-    x3 = tensor_product_pow([bra0],n)
-    x4 = tensor_product_pow([bra1],n)
+    x1 = tensor_product_pow(ket0,m)
+    x2 = tensor_product_pow(ket1,m)
+    x3 = tensor_product_pow(bra0,n)
+    x4 = tensor_product_pow(bra1,n)
     m1 = x1.dot(x3)
     m2 = (math.cos(a) + 1j*math.sin(a)) * x2.dot(x4)
     return np.add(m1,m2)
 
+#print(gn(1,2,0))
+
 # genere un noeud rouge avec n entrees, m sorties et avec un angle a 
-    """
-        SUPPRIMER LES CROCHETS EN TROP...
-    """
 def rn(n,m,a):
-    x1 = tensor_product_pow([ketp],m)
-    x2 = tensor_product_pow([ketm],m)
-    x3 = tensor_product_pow([brap],n)
-    x4 = tensor_product_pow([bram],n)
+    x1 = tensor_product_pow(ketp,m)
+    x2 = tensor_product_pow(ketm,m)
+    x3 = tensor_product_pow(brap,n)
+    x4 = tensor_product_pow(bram,n)
     m1 = x1.dot(x3)
     m2 = (math.cos(a) + 1j*math.sin(a)) * x2.dot(x4)
     return np.add(m1,m2)
+
+#print(rn(1,2,0))
 
 # permet de generer le hash d une matrice pour la reconnaitre 
 def hash_mat(arr):
     return sha1(arr).hexdigest()
 
 
-    """
-        RAJOUTER UNE FONCTIONNALITE POUR PAS ECRIRE UNE MATRICE QUI EXISTE DEJA
-        (avec le hash)
-    """
+"""
+    RAJOUTER UNE FONCTIONNALITE POUR PAS ECRIRE UNE MATRICE QUI EXISTE DEJA
+    (avec le hash)
+"""
 # permet d ecrire des matrices complexes dans un fichier txt (1D ou 2D)
 def save_matrix(liste,path):
     with open(path,'w') as f:
@@ -422,18 +421,119 @@ def search_matrix(l,h):
 #l1 = l + [m1]
 #h = hash_mat(m1)
 #print(search_matrix(l1,h))
+
+# 
+def cartesian_product(arr1,arr2):
+    res = []
+    if len(arr1) == 0  and len(arr2) == 0:
+        res.append([])
+    elif len(arr1) == 0 and not len(arr2) == 0:
+        res.append(arr2)
+    elif not len(arr1) == 0 and len(arr2) == 0:
+        res.append(arr1)
+    else: 
+        s1 = np.shape(arr1[0])
+        s2 = np.shape(arr2[0])
+        if s1 == () and s2 == ():
+            for i in range(len(arr1)):
+                for j in range(len(arr2)):
+                    arr = np.array([[arr1[i]],[arr2[j]]])
+                    res.append(arr)    
+        elif s1 == () and not s2 == ():
+            for k in range(len(arr1)):
+                for i in range(len(arr2)):
+                    arr = [[arr1[k]]]
+                    for j in range(len(arr2[0])):
+                        arr.append(list(arr2[i][j]))
+                    res.append(np.array(arr))
+        elif not s1 == () and s2 == ():
+            for i in range(len(arr1)):
+                for k in range(len(arr2)):
+                    arr = []
+                    for j in range(len(arr1[0])):
+                        arr.append(list(arr1[i][j]))
+                        if j == len(arr1[0])-1:
+                            arr.append([arr2[k]])
+                    res.append(np.array(arr))
+        elif not s1 == () and not s2 == ():
+            for i in range(len(arr1)):
+                for k in range(len(arr2)):
+                    arr = []
+                    for j in range(len(arr1[0])):
+                        arr.append(arr1[i][j])
+                    for l in range(len(arr2[0])):
+                        arr.append(arr2[k][l])
+                    res.append(np.array(arr))
+    return res
+
+#arr1 = np.array([1,2,3])
+#arr2 = np.array([0,1])
+#res = cartesian_product(arr1,arr2)
+#print_list(res)
+#print(cartesian_product(res,res))
+
+def cartesian_product_repeat(arr,n):
+    res = arr
+    for i in range(n-1):
+        res = cartesian_product(res,arr)
+    return res
+
+#print_list(cartesian_product_repeat(np.array([0,1]),2))
+
+def xor(m1,m2):
+    res = []
+    if len(m1) == len(m2):
+        if np.shape(m1) == (0,) and np.shape(m2) == (0,):
+            return []
+        else:
+            for i in range(len(m1)):
+                line = []
+                for j in range(len(m1[0])):
+                    if m1[i][j] == m2[i][j]:
+                        line.append(0)
+                    else: 
+                        line.append(1)
+                res.append(line)
+            return np.array(res)
+    else: 
+        print("Error : the lenght of m1 and m2 must be equal")
+    return res
+
+#m1 = np.array([[0,0],[0,1],[1,1]])
+#m2 = np.array([[1,1],[0,1],[1,1]])
+#print(xor(m1,m2))
+
+def transform_value_to_ket(l):
+    res = []
+    for i in range(len(l)):
+        if l[i] == 0:
+            res.append(ket0)
+        else:
+            res.append(ket1)
+    return np.array(res)
     
 def sum_matrix(r,n):
     i = 1j 
-    all_x = np.array(list(itertools.product([0,1],repeat=r)))
+    all_x = cartesian_product_repeat(np.array([0,1]),r)
     x = all_x[0]
-    #print(np.shape(x))
-    transpose(x)
-    #xt = transpose(x)
+    xt = transpose(x)
+
     res = generate_matrix(r,n)
     Q = res[0][1]
+    print("Q:",Q)
     A = res[1][0]
     B = res[2][0]
+    print("B:",B)
+    
+    i**xt.dot(Q).dot(x)[0][0]
+    print("i**:",i**xt.dot(Q).dot(x)[0][0])
+    A.dot(x)
+    print("A*xt:",A.dot(x))
+    
+    print("Axt xor B:",transpose(xor(A.dot(x),B))[0])
+    print(transform_value_to_ket(transpose(xor(A.dot(x),B))[0]))
+    print(tensor_products(transform_value_to_ket(transpose(xor(A.dot(x),B))[0])))
+    
     #print("x:",np.shape(x))
     #print(np.shape(xt))
     #print_arr(xt)
@@ -445,7 +545,7 @@ def sum_matrix(r,n):
     #print("3:",np.bitwise_xor(A.dot(x),B))
     return []
 
-#sum_matrix(2,3)
+sum_matrix(2,3)
 
  
  
