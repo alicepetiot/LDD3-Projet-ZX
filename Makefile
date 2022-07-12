@@ -1,5 +1,8 @@
 username := alicepetiot
 
+main:
+	cd modules && python3 main.py
+
 tests:
 	python3 -m unittest discover tests/ "*_test.py"
 
